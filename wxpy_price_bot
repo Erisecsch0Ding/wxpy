@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+from wxpy import *  #导入wxpy封装模块
+import requests  #导入requests封装模块
+
+bot = Bot(cache_path=None)
+# # 查找好友的功能
+# bitquant = bot.friends().search('秋收')[0]  # 在好友名单内，搜索昵称为秋收且排在第一位的好友，并赋值给bitquant
+# print(bitquant)
+# # 发送信息, 通过send的方法
+# bitquant.send("Hello world")  # 好友变量调用send方法，即向这个好友发送"hello world"的消息
+
+# test_group = bot.groups().search('测试机器人')[0]  # 在已保存在通讯录名单内的group中，搜索群名为"测试机器人"且排在第一位的group,并赋值给test_group
+
+headers = {
+    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'    #添加手机头（因为需要爬取目标网站上的数据，然后再将爬取的数据通过调用wxpy的方式发出去，所以需要添加手机头，假装是手机在访问目标网站）
+}   
+
+def request_symbol_price(symbol,sender):    
+    try:
+        base_url = 'https://api.zg6.com'  # 将目标网站赋值给base_url
+        price_now_url = base_url + '/openapi/quote/v1/ticker/price?symbol=' + symbol.strip('#') + 'USDT'  # 传入base_url,再将组合后的目标地址赋值给price_now_url
+        # price_24H_uri = base_url + ''
+        resp = requests.get(price_now_url)  # 将从price_now_url抓取到的报文requests后，赋值给resp
+        if resp.status_code == 200:  # 判断报文是否是200
+            # price_24H = float()
+            price_now_str = requests.get(price_now_url, headers=headers).json()['price']  # 从price_now_url抓取的报文，将报文转化为josn格式并提取Key=price的value，再把value赋值给price_now_str
+            price_now = float(requests.get(price_now_url, headers=headers).json()['price'])  # 重复上述操作后，再将抓出来的内容(对应币的价格)转化为浮点型，最后赋值给price_now
+            sender.send(symbol.strip('#').upper() + '的价格：' + price_now_str + '美元' +'\n'+'[数据来自ZG.COM]')  # sender调用send方法，发送内容为(symbol.删除'#'符号.转化大写 + '的价格：' + ...)
+        else:
+            return 'Net_err'  # 输出Net_err(网络错误)
+    except Exception as Error:
+        pass
+
+@bot.register(msg_types=TEXT)
+def receive_message(msg):  # 定义传入形参是msg的函数receive_message()
+    txt = msg.text.upper()  # 形参msg调用text.upper()方法，即转化为大写
+    # print(txt)
+    result = '#' in txt  # 将布尔运算后的结果赋值给result
+    if result == True:  # 布尔运算后的结果是True，则进行下一步
+        sender = msg.sender  形参msg调用sender
+        print(msg.sender)
+        print(msg.text)
+        request_symbol_price(txt, sender)
+embed()  # 启动机器人，让机器人让保持运行
