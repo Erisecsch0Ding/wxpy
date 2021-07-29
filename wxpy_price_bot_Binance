@@ -1,0 +1,53 @@
+# -*- coding: utf-8 -*-
+from wxpy import *
+import requests
+
+抓取币安的数字货币价格，做报价机器人
+
+bot = Bot(cache_path=None)
+# # # 查找好友.
+# bitquant = bot.friends().search('秋收')[0]  # 搜索昵称为秋收的朋友
+# print(bitquant)
+# # 发送信息, 通过send的方法
+# bitquant.send("Hello world")
+
+# test_group = bot.groups().search('测试机器人')[0]
+
+headers = {
+    'User-Agent': 'Mozilla/4.0 (compatible; MSIE 5.5; Windows NT)'
+}
+
+# proxies = {
+#
+#     "https": "ip:"
+#
+# }
+
+def request_symbol_price(symbol,sender):
+    try:
+        base_url = 'https://api1.binance.com'
+        price_now_url = base_url + '/api/v3/ticker/price?symbol=' + symbol.strip('#') + 'USDT'
+        # price_24H_uri = base_url + ''
+        resp = requests.get(price_now_url)
+        if resp.status_code == 200:
+            # price_24H = float()
+            price_now_str = requests.get(price_now_url, headers=headers).json()['price']
+            price_now = float(requests.get(price_now_url, headers=headers).json()['price'])
+            sender.send(symbol.strip('#').upper() + '的价格：' + price_now_str + '美元' +'\n'+'[数据来自Binance]')
+        else:
+            return 'Net_err'
+    except Exception as Error:
+        pass
+
+@bot.register(msg_types=TEXT)
+def receive_message(msg):
+    txt = msg.text.upper()
+    # print(txt)
+    result = '#' in txt
+    if result == True:
+        sender = msg.sender
+        print(msg.sender)
+        print(msg.text)
+        request_symbol_price(txt, sender)
+embed()  # 启动机器人，让机器人让保持运行
+
