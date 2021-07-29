@@ -2,6 +2,8 @@
 from wxpy import *  #导入wxpy封装模块
 import requests  #导入requests封装模块
 
+# 爬取ZG.COM的数字货币价格，并做报价机器人
+
 bot = Bot(cache_path=None)
 # # 查找好友的功能
 # bitquant = bot.friends().search('秋收')[0]  # 在好友名单内，搜索昵称为秋收且排在第一位的好友，并赋值给bitquant
